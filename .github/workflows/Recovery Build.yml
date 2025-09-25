@@ -93,13 +93,20 @@ jobs:
           ssh-private-key: |
             ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Sync OrangeFox sources and minimal manifest
-      run: |
-        cd ${{ steps.pwd.outputs.workspace-folder }}
-        git clone ${{ github.event.inputs.SYNC_URL }}
-        cd sync
-        ./orangefox_sync.sh --branch ${{ github.event.inputs.MANIFEST_BRANCH }} --path ${{ steps.pwd.outputs.workspace-folder }}/fox_${{ github.event.inputs.MANIFEST_BRANCH }}
+    - name: Sync OrangeFox sources manually (Android 11)
       working-directory: ${{ steps.pwd.outputs.workspace-folder }}
+      run: |
+        mkdir -p ~/bin
+        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+        chmod a+rx ~/bin/repo
+        export PATH=~/bin:$PATH
+
+        repo init -u https://gitlab.com/OrangeFox/manifest.git -b 11.0
+        repo sync -j$(nproc --all)
+
+        cd ..
+        mv workspace fox_11.0
+
 
     - name: Clone device tree
       run: |
