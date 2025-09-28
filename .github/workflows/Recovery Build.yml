@@ -10,11 +10,15 @@ on:
       MANIFEST_BRANCH:
         description: 'MANIFEST_BRANCH'
         required: true
-        default: '11.0'
+        default: '12.1'
+        type: choice
+        options:
+          - '12.1'
+          - '14.1'
       DEVICE_TREE_URL:
         description: 'DEVICE_TREE_URL'
         required: true
-        default: 'https://github.com/Ridhoardhiansyah7/android_device_realme_narzo_50i_c11_2021'
+        default: 'https://github.com/Ridhoardhiansyah7/twrp_device_realme_narzo_50i_c11_2021'
       DEVICE_TREE_BRANCH:
         description: 'DEVICE_TREE_BRANCH'
         required: true
@@ -41,6 +45,11 @@ on:
         description: 'BUILD_TARGET'
         required: true
         default: 'boot'
+        type: choice
+        options:
+          - recovery
+          - boot
+          - vendor_boot
 
 jobs:
   build:
@@ -93,20 +102,13 @@ jobs:
           ssh-private-key: |
             ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Sync OrangeFox sources manually (Android 11)
-      working-directory: ${{ steps.pwd.outputs.workspace-folder }}
+    - name: Sync OrangeFox sources and minimal manifest
       run: |
-        mkdir -p ~/bin
-        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
-        chmod a+rx ~/bin/repo
-        export PATH=~/bin:$PATH
-
-        repo init -u https://gitlab.com/OrangeFox/manifest.git -b 11.0
-        repo sync -j$(nproc --all)
-
-        cd ..
-        mv workspace fox_11.0
-
+        cd ${{ steps.pwd.outputs.workspace-folder }}
+        git clone ${{ github.event.inputs.SYNC_URL }}
+        cd sync
+        ./orangefox_sync.sh --branch ${{ github.event.inputs.MANIFEST_BRANCH }} --path ${{ steps.pwd.outputs.workspace-folder }}/fox_${{ github.event.inputs.MANIFEST_BRANCH }}
+      working-directory: ${{ steps.pwd.outputs.workspace-folder }}
 
     - name: Clone device tree
       run: |
@@ -151,11 +153,11 @@ jobs:
         files: |
           ${{ steps.pwd.outputs.workspace-folder }}/fox_${{ github.event.inputs.MANIFEST_BRANCH }}/out/target/product/${{ github.event.inputs.DEVICE_NAME }}/*.img
           ${{ steps.pwd.outputs.workspace-folder }}/fox_${{ github.event.inputs.MANIFEST_BRANCH }}/out/target/product/${{ github.event.inputs.DEVICE_NAME }}/*.zip
-        name: ${{ github.event.inputs.DEVICE_NAME }}-${{ github.run_id }}
+        name: ${{ github.event.inputs.MANIFEST_BRANCH }}-${{ github.run_id }}
         tag_name: ${{ github.run_id }}
         body: |
           Manifest: ${{ github.event.inputs.MANIFEST_BRANCH }}
           Device: ${{ github.event.inputs.DEVICE_NAME }}
           Target: ${{ github.event.inputs.BUILD_TARGET }}
       env:
-        GITHUB_TOKEN: ${{ secrets.axe }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
