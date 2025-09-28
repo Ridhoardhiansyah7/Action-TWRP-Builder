@@ -24,7 +24,7 @@ on:
       DEVICE_TREE_URL:
         description: 'DEVICE_TREE_URL'
         required: true
-        default: 'https://github.com/Ridhoardhiansyah7/android_device_realme_narzo_50i_c11_2021'
+        default: 'https://github.com/Ridhoardhiansyah7/twrp_device_realme_narzo_50i_c11_2021'
       DEVICE_TREE_BRANCH:
         description: 'DEVICE_TREE_BRANCH'
         required: true
