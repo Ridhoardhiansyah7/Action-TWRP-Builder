@@ -51,6 +51,11 @@ on:
         description: 'BUILD_TARGET'
         required: true
         default: 'boot'
+        type: choice
+        options:
+          - recovery
+          - boot
+          - vendor_boot
 
 jobs:
   build:
